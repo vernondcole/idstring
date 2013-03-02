@@ -1,0 +1,3 @@
+include idstring.odt
+include idstring.pdf
+include *.py
