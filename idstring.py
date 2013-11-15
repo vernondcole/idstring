@@ -4,13 +4,16 @@ The intent is to create compact serial numbers using a base 32 number system.
 * a "host" field can be defined, so that if the serial numbers are issued by a known set of
  loosely cooperative units (think of couchdb hosts) the numbers will not conflict.
 
-The string is initialized using a four-argument call like; idstring.IDstring(IDstr, seed, host, seedstore)
+The default alphabet can be replaced by any unicode string you wish. The check digit will be from your alphabet.
+
+The string is initialized using a five-argument call like; idstring.IDstring(IDstr, seed, host, seedstore, hash)
 :IDstr an already-defined idstring.IDstring with checksum. [or None, if you are supplying a "seed"]
 :seed - a "seed" value of valid idstring.ALPHABET characters with no checksum [ignored if IDstr is supplied]
 :host - the identity number of the" host" on which it is running. !!! defines the size of the .host field !!!
 :seedstore - a call-back function which the caller promises to use to preserve the state of the seed value.
 - - - that function will be called with an idstring object so the caller can extract the incremented seed for storage.
 - - - REMINDER...use the .value attribute or get_seed() method. The value of the IDstring cannot be incremented!
+:hash - additional character(s) to alter the check digit, so that IDstrings for different purposes do not match.
  Copyright 2013, eHealth Africa   http://www.ehealthafrica.org
 
  """
@@ -23,7 +26,7 @@ import sys
 import collections
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "0.2.2"
+__version__ = "1.0.0"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -56,9 +59,9 @@ __version__ = "0.2.2"
 #-
 #-----------------------------------------------------------------------
 if sys.version_info[0] > 2:
-    basestring = str
+    basestring = str  # Python3
     text = str
-else:
+else:  # Python2
     text = unicode
 
 
@@ -114,28 +117,29 @@ class IDstring(text):
                 raise InvalidIdError('Incorrect character "%s" in "%s"' % (c, d))
         return d
 
-    def __new__(cls, S=None, seed=None, host='', seedstore=None):
+    def __new__(cls, S=None, seed=None, host='', seedstore=None, hash=''):
         """
         :S - an existing legal idString, or None
         :seed - the seed string for a new factory [ignored unless S is None]
         :host - the host portion for a new idString factory, len(host) will set host length for factory
         :seedstore - a seed preservation function for the new factory
+        :hash - an additional string to alter the calculation of the check digit for diverse projects
         """
         if isinstance(S, basestring):
             us = S.upper()
-            if not cls.sumcheck(us):
+            if not cls.sumcheck(us, hash):
                 raise InvalidIdError('"%s" is not a valid IDstring' % S)
             value = us
         elif isinstance(seed, basestring):
-            value = cls.checksum(seed.upper() + cls._check_host(host))
+            value = cls.checksum(seed.upper() + cls._check_host(host), hash)
         elif isinstance(seed, int):
-            value = cls.checksum(cls.thirty2(seed) + cls._check_host(host))
+            value = cls.checksum(cls.thirty2(seed) + cls._check_host(host), hash)
         else:
-            value = cls.checksum('')
+            value = cls.checksum('', hash)
         return text.__new__(cls,value) #create the new instance
 
-    def __init__(self, S=None, seed=None, host='', seedstore=None):
-        self.value = str(self) # make accessible as an attribute, too, so we can modify it
+    def __init__(self, S=None, seed=None, host='', seedstore=None, hash=''):
+        self.value = text(self) # make accessible as an attribute, too, so we can modify it
         try:
             self.host = S.host
             self.seedstore = S.seedstore
@@ -145,6 +149,7 @@ class IDstring(text):
         if seedstore is not None:
             if not isinstance(seedstore, collections.Callable):
                 raise IdStringError ('seedstore "%s" is not Callable' % repr(seedstore))
+        self.hash = hash
 
     def get_seed(self):
         """extracts the incrementable part (without the host and checksum digits) of the IDstring"""
@@ -163,7 +168,7 @@ class IDstring(text):
         seed = self.get_seed()
         n = len(seed)
         keep_looping = True
-        while keep_looping:
+        while keep_looping:  # this is done using string math (not binary) since usually only one digit is changed
             n -= 1
             c = seed[n]
             i = self.ALPHABET.find(c)
@@ -176,10 +181,11 @@ class IDstring(text):
                     cat = self.ALPHABET[1] + cat # add a new place
                     keep_looping = False
         self.seed = seed[:n] + cat
-        return self.checksum(self.seed + self.host)
+        return self.checksum(self.seed + self.host, self.hash)
 
     def _run_factory(self):
-        """increments the IDstring, skipping evil words <<CAUTION: increments self.value but DOES NOT CHANGE self.__str__>>"""
+        """increments the IDstring, skipping evil words
+         <<CAUTION: increments self.value but DOES NOT CHANGE self.__str__>>"""
         self.value = self._next_value()
         # now make sure we're not printing an "unprintable" word
         for bad_word in self.DIRTY_WORDS:
@@ -187,10 +193,10 @@ class IDstring(text):
                 lsbad = self.value.find(bad_word) + len(bad_word)
                 try: staticlen = len(self.host) + 1
                 except AttributeError: staticlen = 1
-                lsbad = min(len(self.value) - staticlen, lsbad) - 1 # must change the seed, not the checksum character itself
+                lsbad = min(len(self.value) - staticlen, lsbad) - 1 # change the seed, not the checksum character itself
                 c = self.value[lsbad]  # find the digit for last changeable letter of the bad word
                 i = self.ALPHABET.find(c)       # and increment it  NOTE: we assume bad words do not end in 'Y'
-                self.value = self.checksum(self.value[:lsbad] + self.ALPHABET[i+1] + self.value[lsbad+1:-1])
+                self.value = self.checksum(self.value[:lsbad] + self.ALPHABET[i+1] + self.value[lsbad+1:-1], self.hash)
                 self.seed = self.value[:-staticlen]
         if self.seedstore:    # call the seedstore function supplied by the program, with "self" as an argument
             self.seedstore(self)
@@ -203,7 +209,7 @@ class IDstring(text):
         !!weird side effect!! doing (i + 1) "N" times WILL produce N sequential values. This is intentional but -- ICK!
         """
         if other == 1:
-            return IDstring(self._run_factory(), host=self.host, seedstore=self.seedstore)
+            return IDstring(self._run_factory(), host=self.host, seedstore=self.seedstore, hash=self.hash)
         else:
             return self.value + other
 
@@ -232,8 +238,9 @@ class IDstring(text):
 #w
 #w function char GenerateCheckCharacter(string input) {
     @classmethod
-    def checksum(cls,input):                        #w
+    def checksum(cls, input, hash=''):              #w
         """idstring.checksum('S': thirty2 encoded string) --> input string with checksum appended"""
+        instr = input + text(hash)  # append the hash string to make unique calculations
         factor = 2                                  #w int factor = 2;
         sum = 0                                     #w int sum = 0;
         n = len(cls.ALPHABET)                       #w int n = NumberOfValidInputCharacters();
@@ -241,7 +248,7 @@ class IDstring(text):
         #w // Starting from the right and working leftwards is easier since
         #w // the initial "factor" will always be "2"
         #w for (int i = input.Length - 1; i >= 0; i--) {
-        for c in input[::-1]:
+        for c in instr[::-1]:
             codePoint = cls.ALPHABET.find(c)   #w int codePoint = CodePointFromCharacter(input[i]);
             addend = factor * codePoint        #w int addend = factor * codePoint;
             #w
@@ -266,17 +273,18 @@ class IDstring(text):
     #w
     #w function bool ValidateCheckCharacter(string input) {
     @classmethod
-    def sumcheck(cls,input):                        #w
+    def sumcheck(cls, input, hash=''):              #w
         """idstring.sumcheck(S: IDSTRING) --> True is checksum is valid"""
         factor = 1                                  #w int factor = 1;
         sum = 0                                     #w int sum = 0;
         n =  len(cls.ALPHABET)                      #w int n = NumberOfValidInputCharacters();
+        instr = input[:-1] + text(hash) + input[-1] # hash is used to create unique check digits for various projects
         #w
         #w// Starting from the right, work leftwards
         #w// Now, the initial "factor" will always be "1"
         #w// since the last character is the check character
         try:
-            for c in input[::-1]:                       #w for (int i = input.Length - 1; i >= 0; i--) {
+            for c in instr[::-1]:                       #w for (int i = input.Length - 1; i >= 0; i--) {
                 codePoint =  cls.ALPHABET.find(c)       #w    int codePoint = CodePointFromCharacter(input[i]);
                 addend = factor * codePoint             #w    int addend = factor * codePoint;
                 #w
