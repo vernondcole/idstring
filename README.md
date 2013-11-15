@@ -20,9 +20,13 @@ So, in short, you can generate serial numbers like this:
 With a result ending in:
 
 >1YYYYVA
+
 >1YYYYW8
+
 >1YYYYX6
+
 >1YYYYY4
+
 >200000X
 
 Incrementation flows smoothly through the alphabet -- "9" increments to "A". Incrementing "Y" gives "0" and 
@@ -49,7 +53,7 @@ are included in the "dirty word" checking.
 
 Installation uses the usual Python method:
 
->cd your-unzipped-directory
->python setup.py install
+    cd your-unzipped-directory
+    python setup.py install
 
 
