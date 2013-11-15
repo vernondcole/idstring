@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 ld = """an IDstring is a string-like object which can be incremented, to produce
-a series of serial-number-like strings, consisting of latin digits and upper case letters,
+a series of serial-number-like strings, consisting of Arabic digits and upper case letters,
 skipping those which can be easily misinterpreted ("oh", "I", "Q", and Zed) and which has
 a Luhn-N check digit, capable of detecting any single-letter error and most other errors.
 
