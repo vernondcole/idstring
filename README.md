@@ -16,6 +16,28 @@ It has been tested on Python 2.7 and Python 3.3.
 It extends the built-in Unicode (str on Python 3) class using an __ADD__ method which accepts the integer ONE.
 Adding 1 to an instance of the class will generate a new instance with an incremented value (and a new checksum).
 
+So, in short, you can generate serial numbers like this:
+
+>serial = idstring.IDstring(seed='1Y3R9C')
+
+>while serial.startswith('1'):
+
+>    serial += 1
+
+>    print(serial)
+
+With a result ending in:
+
+>1YYYYVA
+
+>1YYYYW8
+
+>1YYYYX6
+
+>1YYYYY4
+
+>200000X
+
 Incrementation flows smoothly through the alphabet -- "9" increments to "A". Incrementing "Y" gives "0" and 
 causes a carry to increment the next digit. If you run out of digits, a "1" is prepended to the string.
 
