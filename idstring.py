@@ -19,7 +19,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
  """
 #  This code is released and licensed under the terms of the GPL license as specified at the
 #  following URL:
-#   http://www.gnu.org/copyleft/gpl.html
+#   http://www.gnu.org/copyleft/lgpl.html
 #
 from __future__ import unicode_literals
 import sys
