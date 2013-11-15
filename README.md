@@ -5,12 +5,6 @@ Python module to create alpha-numeric serial number strings with a check digit, 
 
 class IDstring generates (and checks) alphanumeric serial number strings with a checksum
 
-Installation uses the usual Python method:
-
->cd your-unzipped-directory
-
->python setup.py install
-
 It has been tested on Python 2.7 and Python 3.3.
 
 It extends the built-in Unicode (str on Python 3) class using an __ADD__ method which accepts the integer ONE.
@@ -18,24 +12,17 @@ Adding 1 to an instance of the class will generate a new instance with an increm
 
 So, in short, you can generate serial numbers like this:
 
->serial = idstring.IDstring(seed='1Y3R9C')
-
->while serial.startswith('1'):
-
->    serial += 1
-
->    print(serial)
+    serial = idstring.IDstring(seed='1Y3R9C')
+    while serial.startswith('1'):
+        serial += 1
+        print(serial)
 
 With a result ending in:
 
 >1YYYYVA
-
 >1YYYYW8
-
 >1YYYYX6
-
 >1YYYYY4
-
 >200000X
 
 Incrementation flows smoothly through the alphabet -- "9" increments to "A". Incrementing "Y" gives "0" and 
@@ -58,5 +45,11 @@ that it also can operate as a binary to base-32 converter (Like Hexadecimal but 
 
 Provision is made for a fixed subfield (of user defined length) between the check digit and the incrementing
 field, so that multiple sites can produce non-overlapping series of numbers.  This subfield and the check digit
-are included in the objectionable substring search.
+are included in the "dirty word" checking.
+
+Installation uses the usual Python method:
+
+>cd your-unzipped-directory
+>python setup.py install
+
 
