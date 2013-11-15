@@ -34,7 +34,7 @@ def setup_package():
             'Operating System :: OS Independent',
             'Topic :: Software Development',
             'Topic :: Software Development :: Libraries :: Python Modules'],
-        url = 'https://github/idstring',
+        url = 'https://github/vernondcole/idstring',
         py_modules=["idstring"]
         )
     
