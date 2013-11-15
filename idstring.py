@@ -17,7 +17,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
  Copyright 2013, eHealth Africa   http://www.ehealthafrica.org
 
  """
-#  This code is released and licensed under the terms of the GPL license as specified at the
+#  This code is released and licensed under the terms of the Lesser GPL license as specified at the
 #  following URL:
 #   http://www.gnu.org/copyleft/lgpl.html
 #
@@ -26,7 +26,7 @@ import sys
 import collections
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
