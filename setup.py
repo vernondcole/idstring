@@ -17,7 +17,7 @@ The class will also perform generic binary to alpha conversions in your alphabet
 def setup_package():
     setup(
         name='idstring',
-        version='1.0.1',
+        version='1.0.3',
         author = "Vernon Cole",
         author_email = "vernondcole@gmail.com",
         description = "a class for compact alpha-numeric serial numbers with a check digit",

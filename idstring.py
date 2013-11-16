@@ -26,7 +26,7 @@ import sys
 import collections
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "1.0.1"
+__version__ = "1.0.3"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -136,20 +136,25 @@ class IDstring(text):
             value = cls.checksum(cls.thirty2(seed) + cls._check_host(host), hash)
         else:
             value = cls.checksum('', hash)
-        return text.__new__(cls,value) #create the new instance
+        new = text.__new__(cls,value) #create the new instance
 
-    def __init__(self, S=None, seed=None, host='', seedstore=None, hash=''):
-        self.value = text(self) # make accessible as an attribute, too, so we can modify it
+        new.value = value # make accessible as an attribute, too, so we can modify it
         try:
-            self.host = S.host
-            self.seedstore = S.seedstore
+            new.host = S.host
         except AttributeError:
-            self.seedstore = seedstore
-            self.host = self._check_host(host)
-        if seedstore is not None:
-            if not isinstance(seedstore, collections.Callable):
-                raise IdStringError ('seedstore "%s" is not Callable' % repr(seedstore))
-        self.hash = hash
+            new.host = cls._check_host(host)
+        try:
+            new.seedstore = S.seedstore
+        except AttributeError:
+            new.seedstore = seedstore
+            if seedstore is not None:
+                if not isinstance(seedstore, collections.Callable):
+                    raise IdStringError ('seedstore "%s" is not Callable' % repr(seedstore))
+        try:
+            new.hash = S.hash
+        except AttributeError:
+            new.hash = hash
+        return new
 
     def get_seed(self):
         """extracts the incrementable part (without the host and checksum digits) of the IDstring"""
