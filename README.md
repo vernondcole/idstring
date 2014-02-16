@@ -17,7 +17,7 @@ So, in short, you can generate serial numbers like this:
         serial += 1
         print(serial)
 
-With a result ending in:
+Gives a result series which ends with:
 
 >1YYYYVA
 
@@ -32,7 +32,7 @@ With a result ending in:
 Incrementation flows smoothly through the alphabet -- "9" increments to "A". Incrementing "Y" gives "0" and 
 causes a carry to increment the next digit. If you run out of digits, a "1" is prepended to the string.
 
-The "Luhn mod N" algorith will add another digit (from the same alphabet) as a check digit.
+The "Luhn mod N" algorithm will be used to add another digit (from the same alphabet) as a check digit.
 
 The routine will automatically skip over patterns which contain substrings matching a list of "Dirty Words."
 
