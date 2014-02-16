@@ -17,7 +17,7 @@ So, in short, you can generate serial numbers like this:
         serial += 1
         print(serial)
 
-Gives a result series which ends with:
+Gives a result series which starts with "1Y3R9CB" and loops 925,386 times, ending with:
 
 >1YYYYVA
 
@@ -32,11 +32,12 @@ Gives a result series which ends with:
 Incrementation flows smoothly through the alphabet -- "9" increments to "A". Incrementing "Y" gives "0" and 
 causes a carry to increment the next digit. If you run out of digits, a "1" is prepended to the string.
 
-The "Luhn mod N" algorithm will be used to add another digit (from the same alphabet) as a check digit.
+The "Luhn mod N" algorithm is used to add another digit (from the same alphabet) as a check digit.
 
 The routine will automatically skip over patterns which contain substrings matching a list of "Dirty Words."
+The above example should have been expected to produce 95396 results, but skipped 10 objectionable values.
 
-You can over-write the supplied alphabet and objectionable word lists.
+You can override the supplied alphabet and objectionable word lists.
 
 You may supply an optional call-back function to assist in maintaining the persistence of the serial number
 sequence of multiple program runs.
@@ -51,9 +52,14 @@ Provision is made for a fixed subfield (of user defined length) between the chec
 field, so that multiple sites can produce non-overlapping series of numbers.  This subfield and the check digit
 are included in the "dirty word" checking.
 
-Installation uses the usual Python method:
+Installation uses the usual Python methods:
 
     cd your-unzipped-directory
     python setup.py install
+    
+    or
+    
+    pip install idstring
+    
 
 
