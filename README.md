@@ -3,6 +3,8 @@ idstring
 
 Python module to create alpha-numeric serial number strings with a check digit, with smart incrementing.
 
+[ for more information, please refer to the wiki at https://github.com/vernondcole/idstring/wiki ]
+
 class IDstring generates (and checks) alphanumeric serial number strings with a checksum
 
 It has been tested on Python 2.7 and Python 3.3.
