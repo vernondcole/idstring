@@ -9,6 +9,8 @@ class IDstring generates (and checks) alphanumeric serial number strings with a 
 
 It has been tested on Python 2.7 and Python 3.3.
 
+* 2018 Update: Sill works fine in Python 3.6. No issues have been filed, no bugs reported.
+
 It extends the built-in Unicode (str on Python 3) class using an __ADD__ method which accepts the integer ONE.
 Adding 1 to an instance of the class will generate a new instance with an incremented value (and a new checksum).
 

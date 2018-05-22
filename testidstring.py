@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Test code for the IDstring package
 """
