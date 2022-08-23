@@ -7,11 +7,13 @@ Python module to create alpha-numeric serial number strings with a check digit, 
 
 class IDstring generates (and checks) alphanumeric serial number strings with a checksum
 
-It has been tested on Python 2.7 and Python 3.3.
+It has been tested on Python 2.7 and Python 3.10.
 
 * 2018 Update: Sill works fine in Python 3.6. No issues have been filed, no bugs reported.
+ 
+* 2022 Update: works with Python 3.10. Version 1.1 added ability to pass hash=None to turn off checksums
 
-It extends the built-in Unicode (str on Python 3) class using an __ADD__ method which accepts the integer ONE.
+It extends the built-in str (unicode on Python 2) class using an __ADD__ method which accepts the integer ONE.
 Adding 1 to an instance of the class will generate a new instance with an incremented value (and a new checksum).
 
 So, in short, you can generate serial numbers like this:
@@ -36,7 +38,7 @@ Gives a result series which starts with "1Y3R9CB" and loops 925,386 times, endin
 Incrementation flows smoothly through the alphabet -- "9" increments to "A". Incrementing "Y" gives "0" and 
 causes a carry to increment the next digit. If you run out of digits, a "1" is prepended to the string.
 
-The "Luhn mod N" algorithm is used to add another digit (from the same alphabet) as a check digit.
+The "Luhn mod N" algorithm is used (unless disabled) to add another digit (from the same alphabet) as a check digit.
 
 The routine will automatically skip over patterns which contain substrings matching a list of "Dirty Words."
 The above example should have been expected to produce 95396 results, but skipped 10 objectionable values.
@@ -64,6 +66,3 @@ Installation uses the usual Python methods:
     or
     
     pip install idstring
-    
-
-

@@ -14,6 +14,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
 - - - that function will be called with an idstring object so the caller can extract the incremented seed for storage.
 - - - REMINDER...use the .value attribute or get_seed() method. The value of the IDstring cannot be incremented!
 :hash - additional character(s) to alter the check digit, so that IDstrings for different purposes do not match.
+- - - if hash is None, checksum generation and checking will be disabled.
  Copyright 2013, eHealth Africa   http://www.ehealthafrica.org
 
  """
@@ -26,7 +27,7 @@ import sys
 import collections
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "1.0.3"
+__version__ = "1.1.0"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -61,9 +62,10 @@ __version__ = "1.0.3"
 if sys.version_info[0] > 2:
     basestring = str  # Python3
     text = str
+    from collections.abc import Callable
 else:  # Python2
     text = unicode
-
+    from collections import Callable
 
 #Define exceptions
 class IdStringError(ValueError):
@@ -124,6 +126,7 @@ class IDstring(text):
         :host - the host portion for a new idString factory, len(host) will set host length for factory
         :seedstore - a seed preservation function for the new factory
         :hash - an additional string to alter the calculation of the check digit for diverse projects
+                pass hash=None to turn off checksum testing and creation. Makes this module dumb.
         """
         if isinstance(S, basestring):
             us = S.upper()
@@ -148,7 +151,7 @@ class IDstring(text):
         except AttributeError:
             new.seedstore = seedstore
             if seedstore is not None:
-                if not isinstance(seedstore, collections.Callable):
+                if not isinstance(seedstore, Callable):
                     raise IdStringError ('seedstore "%s" is not Callable' % repr(seedstore))
         try:
             new.hash = S.hash
@@ -161,10 +164,11 @@ class IDstring(text):
         try:
             return self.seed
         except AttributeError:
+            inc = 0 if self.hash is None else 1
             try:
-                n = len(self.host) + 1
+                n = len(self.host) + inc
             except TypeError:
-                n = 1
+                n = inc
             return self.value[:-n]
 
     def _next_value(self):
@@ -245,6 +249,8 @@ class IDstring(text):
     @classmethod
     def checksum(cls, input, hash=''):              #w
         """idstring.checksum('S': thirty2 encoded string) --> input string with checksum appended"""
+        if hash is None:
+            return input
         instr = input + text(hash)  # append the hash string to make unique calculations
         factor = 2                                  #w int factor = 2;
         sum = 0                                     #w int sum = 0;
@@ -280,6 +286,8 @@ class IDstring(text):
     @classmethod
     def sumcheck(cls, input, hash=''):              #w
         """idstring.sumcheck(S: IDSTRING) --> True is checksum is valid"""
+        if hash is None:
+            return True
         factor = 1                                  #w int factor = 1;
         sum = 0                                     #w int sum = 0;
         n =  len(cls.ALPHABET)                      #w int n = NumberOfValidInputCharacters();

@@ -208,5 +208,18 @@ class Test7(unittest.TestCase):
         assert not IDstring.sumcheck('TESTME29', hash='XX'), 'invalid checksum should not pass (different hash)'
 
 
+class Test8(unittest.TestCase):
+    #  Testing with no checksum (hash=None)
+    def test8a(self):
+    #test building a factory with a null hash
+        fact = IDstring(None, '5GA', '1234', dummy, None)
+    #value comes back unchanged
+        assertion(fact, '5GA1234', None)
+        IDstring.sumcheck(fact, hash=None)
+    #try the next value
+        x = fact + 1
+        assertion(x, '5GB1234', '5GB')
+
+
 if __name__ == "__main__":
     unittest.main()

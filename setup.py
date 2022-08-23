@@ -1,26 +1,38 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
-
 ld = """an IDstring is a string-like object which can be incremented, to produce
 a series of serial-number-like strings, consisting of Arabic digits and upper case letters,
 skipping those which can be easily misinterpreted ("oh", "I", "Q", and Zed) and which has
-a Luhn-N check digit, capable of detecting any single-letter error and most other errors.
+an optional Luhn-N check digit, capable of detecting any single-letter error and most other errors.
 
 Programmers may define alternate alphabets, alternate lists of "dirty" words (which are skipped),
 a fixed subfield for generating serial number from multiple sources, and a hash code to create unique check
-digits algorithms for multiple projects.
+digits algorithms for multiple projects. Passing a hash code of None will surpress check digit operation.
 
 The class will also perform generic binary to alpha conversions in your alphabet (base-32 for the default).
 """
 
+VERSION = None  # in case searching for version fails
+a = open("idstring.py")  # find the version string in the source code
+for line in a:
+    if "__version__" in line:
+        VERSION = line.split('"')[1]
+        print('idstring version="%s"' % VERSION)
+        break
+a.close()
+
+
 def setup_package():
+    from setuptools import setup
+    from setuptools.command.build_py import build_py
+
     setup(
-        name='idstring',
-        version='1.0.3',
+        cmdclass={"build_py": build_py},
+        name = 'idstring',
+        version = VERSION,
         author = "Vernon Cole",
         author_email = "vernondcole@gmail.com",
-        description = "a class for compact alpha-numeric serial numbers with a check digit",
+        description = "a class for compact alpha-numeric serial numbers with (an optional) check digit",
         long_description = ld,
         license = "GPL",
         keywords = "serial number string checksum",
