@@ -27,7 +27,7 @@ import sys
 import collections
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -169,7 +169,9 @@ class IDstring(text):
                 n = len(self.host) + inc
             except TypeError:
                 n = inc
-            return self.value[:-n]
+            ret = self.value[:-n] if n > 0 else self.value
+            return ret
+
 
     def _next_value(self):
         """create the next sequential idString"""

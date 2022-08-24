@@ -220,6 +220,12 @@ class Test8(unittest.TestCase):
         x = fact + 1
         assertion(x, '5GB1234', '5GB')
 
+    def test8b(self):
+        with Test6.weird_alphabet(self, 'ABCD'):
+            x = IDstring('ADD', hash=None, seedstore=dummy)
+            x += 1
+            assertion(x, 'BAA', 'BAA')
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -9,7 +9,7 @@ class IDstring generates (and checks) alphanumeric serial number strings with a 
 
 It has been tested on Python 2.7 and Python 3.10.
 
-* 2018 Update: Sill works fine in Python 3.6. No issues have been filed, no bugs reported.
+* 2018 Update: Still works fine in Python 3.6. No issues have been filed, no bugs reported.
  
 * 2022 Update: works with Python 3.10. Version 1.1 added ability to pass hash=None to turn off checksums
 
