@@ -27,7 +27,7 @@ import sys
 import collections
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -189,7 +189,8 @@ class IDstring(text):
             except IndexError:       # a carry is needed, will keep looping
                 cat = self.ALPHABET[0] + cat   # supply the lowest character on the ALPHABET string
                 if n == 0:   # carrying out of the most significant digit
-                    cat = self.ALPHABET[1] + cat # add a new place
+                    carry_digit = '1' if self.ALPHABET[0] == '0' else self.ALPHABET[0]
+                    cat = carry_digit + cat # add a new place
                     keep_looping = False
         self.seed = seed[:n] + cat
         return self.checksum(self.seed + self.host, self.hash)
@@ -289,6 +290,12 @@ class IDstring(text):
     def sumcheck(cls, input, hash=''):              #w
         """idstring.sumcheck(S: IDSTRING) --> True is checksum is valid"""
         if hash is None:
+            try:
+                for c in input.upper():
+                    if c not in cls.ALPHABET:
+                        return False
+            except AttributeError:
+                return False
             return True
         factor = 1                                  #w int factor = 1;
         sum = 0                                     #w int sum = 0;

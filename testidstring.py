@@ -226,6 +226,12 @@ class Test8(unittest.TestCase):
             x += 1
             assertion(x, 'BAA', 'BAA')
 
+            x = IDstring('DDDD', hash=None, seedstore=dummy)
+            x += 1
+            assertion(x, 'AAAAA')
+
+            self.assertFalse(x.sumcheck('ABAD1', hash=None))
+
 
 if __name__ == "__main__":
     unittest.main()
