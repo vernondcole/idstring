@@ -27,7 +27,7 @@ import sys
 import collections
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -119,16 +119,11 @@ class IDstring(text):
                 raise InvalidIdError('Incorrect character "%s" in "%s"' % (c, d))
         return d
 
-    def __new__(cls, S=None, seed=None, host='', seedstore=None, hash=''):
-        """
-        :S - an existing legal idString, or None
-        :seed - the seed string for a new factory [ignored unless S is None]
-        :host - the host portion for a new idString factory, len(host) will set host length for factory
-        :seedstore - a seed preservation function for the new factory
-        :hash - an additional string to alter the calculation of the check digit for diverse projects
-                pass hash=None to turn off checksum testing and creation. Makes this module dumb.
-        """
-        if isinstance(S, basestring):
+    @classmethod
+    def _reduce_args(cls, S, seed, host, hash):
+        if isinstance(S, cls):
+            return S.value, seed or S.seed, host or S.host, hash or S.hash
+        elif isinstance(S, basestring):
             us = S.upper()
             if not cls.sumcheck(us, hash):
                 raise InvalidIdError('"%s" is not a valid IDstring' % S)
@@ -139,25 +134,35 @@ class IDstring(text):
             value = cls.checksum(cls.thirty2(seed) + cls._check_host(host), hash)
         else:
             value = cls.checksum('', hash)
-        new = text.__new__(cls,value) #create the new instance
+        return value, seed, host, hash
 
+
+    def __new__(cls, S=None, seed=None, host='', seedstore=None, hash='', alphabet=None):
+        """
+        :S - an existing legal idString, or None
+        :seed - the seed string for a new factory [ignored unless S is None]
+        :host - the host portion for a new idString factory, len(host) will set host length for factory
+        :seedstore - a seed preservation function for the new factory
+        :hash - an additional string to alter the calculation of the check digit for diverse projects
+                pass hash=None to turn off checksum testing and creation. Makes this module dumb.
+        """
+        value, _, _, _ = cls._reduce_args(S, seed, host, hash)
+        new = text.__new__(cls,value) #create the new instance
         new.value = value # make accessible as an attribute, too, so we can modify it
+        return new
+
+
+    def __init__(self, S=None, seed=None, host='', seedstore=None, hash='', alphabet=None):
+        value, self.seed, self.host, self.hash = IDstring._reduce_args(S, seed, host, hash)
         try:
-            new.host = S.host
+            self.seedstore = S.seedstore
         except AttributeError:
-            new.host = cls._check_host(host)
-        try:
-            new.seedstore = S.seedstore
-        except AttributeError:
-            new.seedstore = seedstore
+            self.seedstore = seedstore
             if seedstore is not None:
                 if not isinstance(seedstore, Callable):
                     raise IdStringError ('seedstore "%s" is not Callable' % repr(seedstore))
-        try:
-            new.hash = S.hash
-        except AttributeError:
-            new.hash = hash
-        return new
+        self.alphabet = alphabet or IDstring.ALPHABET
+
 
     def get_seed(self):
         """extracts the incrementable part (without the host and checksum digits) of the IDstring"""
