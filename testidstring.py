@@ -62,7 +62,7 @@ class Test3(unittest.TestCase):
         except InvalidIdError:
             pass
         else:
-            self.Fail('Did not see OutOfRangeError')
+            self.fail('Did not see OutOfRangeError')
 
     def test3b(self):
         assert not IDstring.sumcheck('TSETME2K'), 'invalid checksum should not pass'
@@ -79,12 +79,12 @@ class Test4(unittest.TestCase):
 
     def test4b(self):
         #test that we skip bad words on the left
-        f = IDstring('fucjyyy', seedstore=dummy)
+        f = IDstring(seed='fucjyyy', seedstore=dummy)
         x = f + 1             #skip you, too, buddy
         assertion(x, 'FUCL000U', 'FUCL000')
 
     def test4c(self):   # test the case where a checksum causes a bad word
-        f = IDstring('000vfub', seedstore=dummy)
+        f = IDstring(seed='000vfub', seedstore=dummy)
         x = f + 1             # '000VFUC' has a checksum of 'K'
         assertion(x, '000VFUDH', '000VFUD')
 
@@ -187,7 +187,7 @@ class Test7(unittest.TestCase):
         except InvalidIdError:
             pass
         else:
-            self.Fail('Did not see OutOfRangeError')
+            self.fail('Did not see OutOfRangeError')
 
     def test7d(self):
         assert not IDstring.sumcheck('TESTME29'), 'invalid checksum should not pass (default hash)'
@@ -219,6 +219,13 @@ class Test8(unittest.TestCase):
 
         self.assertFalse(IDstring.sumcheck('ABAD1', hash=None, alphabet='ABCD'))
 
+class Test9(unittest.TestCase):
+    # testing that case_shift=None will not shift case
+    def test9(self):
+        x = IDstring(seed='AbC', seedstore=dummy, hash=None, alphabet='ABCabc', case_shift=None)
+        assertion(x, 'AbC')
+        x += 1
+        assertion(x, 'Aba')
 
 if __name__ == "__main__":
     unittest.main()

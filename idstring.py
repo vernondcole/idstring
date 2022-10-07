@@ -27,7 +27,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
 from collections.abc import Callable
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -121,8 +121,8 @@ class IDstring(str):
             return host
 
     @staticmethod
-    def __new__(cls, idstr=None, seed=None, host='', seedstore=None, hash='', alphabet=None, case_shift=None,
-                no_check=False):
+    def __new__(cls, idstr=None, seed=None, host='', seedstore=None, hash='', alphabet=None,
+                case_shift=DEFAULT_CASE_SHIFT, no_check=False):
         """
         :S - an existing legal idString, or None
         :seed - the seed string for a new factory [ignored unless S is None]
@@ -131,7 +131,8 @@ class IDstring(str):
         :hash - an additional string to alter the calculation of the check digit for diverse projects
                 pass hash=None to turn off checksum testing and creation. Makes this module dumb.
         """
-        case_shift = case_shift or DEFAULT_CASE_SHIFT
+        if case_shift is None:
+            case_shift = noshift
         try:
             if seed:
                 seed = case_shift(seed)
@@ -152,10 +153,13 @@ class IDstring(str):
             case_shift = idstr.case_shift
         elif isinstance(idstr, str):
             us = case_shift(idstr)  # if passing a string as on IDstring, it must already have a checksum
-            if no_check or _sumcheck(us, hash, case_shift=case_shift):
+            if no_check:
                 value = us
             else:
-                seed = us  # was a shortcut passing a seed as the idstr.
+                if _sumcheck(us, hash, case_shift=case_shift, alphabet=alphabet):
+                    value = us
+                else:
+                    raise InvalidIdError(f'Invalid checksum in id={us}')
         if value is None:
             if isinstance(seed, str):  # passing a seed means we need a checksum and host
                 new_root = seed + case_shift(host)
