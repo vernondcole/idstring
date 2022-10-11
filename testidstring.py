@@ -227,5 +227,33 @@ class Test9(unittest.TestCase):
         x += 1
         assertion(x, 'Aba')
 
+
+class Test10(unittest.TestCase):
+    # Test the dirty word filter in more depth
+    @contextmanager
+    def weird_words(self, weird):
+        keep = IDstring.DIRTY_WORDS
+        IDstring.DIRTY_WORDS = weird
+        try:
+            yield None
+        finally:
+            IDstring.DIRTY_WORDS = keep
+
+    def test10(self):
+        # try changing the dirty word list
+        more_words = idstring.DEFAULT_DIRTY_WORDS + idstring.DIRTY_I_WORDS
+        with self.weird_words(more_words):
+            f = IDstring(seed='tBtist', alphabet='aBcit', case_shift=None, hash=None)  # a short mixed case alphabet
+            f += 1  # carry should spell a three letter objectionabe word
+            assertion(f, 'tBtiaa')  # The second "t" should be incremented to "a"
+
+
+    def test11(self):
+        # test carry out of range with alternate alphabet
+        f = IDstring(seed='zzz', alphabet='abcz', case_shift=None)
+        f += 1
+        assertion(f, 'aaaaa')
+
+
 if __name__ == "__main__":
     unittest.main()

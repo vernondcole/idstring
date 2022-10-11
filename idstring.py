@@ -16,6 +16,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
 - - - REMINDER...use the .value attribute or get_seed() method. The value of the IDstring cannot be incremented!
 :hash - additional character(s) to alter the check digit, so that IDstrings for different purposes do not match.
 - - - if hash is None, checksum generation and checking will be disabled.
+:case_shift - function to apply to input strings. One of str.upper, str.lower, or None. Default is str.upper()
  Copyright 2013, eHealth Africa   http://www.ehealthafrica.org
  Copyright 2022, Vernon Cole
 
@@ -27,7 +28,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
 from collections.abc import Callable
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -61,6 +62,9 @@ __version__ = "2.0.1"
 #-----------------------------------------------------------------------
 
 #Define exceptions
+import idstring
+
+
 class IdStringError(ValueError):
     """Base class for all errors in the IdString package"""
     pass
@@ -81,13 +85,15 @@ DEFAULT_ALPHABET = "0123456789ABCDEFGHJKLMNPRSTUVWXY"
 # create a list of George Carlan's "the seven words you can't say on T.V."
 # plus a few extras, but ignoring those with an "I" in them, since the default ALPHABET has no "I"
 DEFAULT_DIRTY_WORDS = [c[::-1] for c in ['KCUF', 'TNUC', 'TRAF', 'DRUT', 'TAWT', 'SLLAB']]
-DIRTY_I_WORDS = [c[::-1] for c in ['TIHS', 'STIT', 'SSIP']]
+DIRTY_I_WORDS = [c[::-1] for c in ['TIHS', 'TIT', 'SSIP']]  # if your alternate alphabet contains an "I"
+# alter your list like--> IDstring.DIRTY_WORDS = idstring.DEFAULT_DIRTY_WORDS + idstring.DIRTY_I_WORDS
 # the words are stored backwards in the source, because 'kcuf' is not objectionable.
+# the dirty word test is case independent.
 
 
 class IDstring(str):
     """
-
+    Returns a complex string-value object which has an _add_ method for plus 1.
     """
     #the following are class attributes for IDstrings.  They may be redefined if a programmer
     #whishes to change what in "idString" looks like.
@@ -130,6 +136,7 @@ class IDstring(str):
         :seedstore - a seed preservation function for the new factory
         :hash - an additional string to alter the calculation of the check digit for diverse projects
                 pass hash=None to turn off checksum testing and creation. Makes this module dumb.
+        :case_shift - function to apply to input strings. one of str.upper str.lower or None
         """
         if case_shift is None:
             case_shift = noshift
@@ -226,17 +233,20 @@ class IDstring(str):
         next_value = self._next_value()
         # now make sure we're not printing an "unprintable" word
         checksum_size = 1 if self.hash is not None else 0
-        up_next = next_value.upper()
+        next_upped = next_value.upper()
         for bad_word in self.DIRTY_WORDS:
-            if bad_word in up_next:
-                lsbad = up_next.find(bad_word) + len(bad_word)
+            if bad_word in next_upped:
+                wherebad = next_upped.find(bad_word) + len(bad_word)
                 try: staticlen = len(self.host) + checksum_size
                 except AttributeError: staticlen = 1
-                lsbad = min(len(next_value) - staticlen, lsbad) - checksum_size  # change the seed, not the checksum character itself
-                c = next_value[lsbad]  # find the digit for last changeable letter of the bad word
-                i = self.alphabet.find(c)       # and increment it  NOTE: we assume bad words do not end in 'Y'
-                next_root = next_value[:lsbad] + self.alphabet[i+1] + next_value[lsbad+1:-1]
-                next_value = _checksum(next_root, self.hash, self.alphabet)
+                wherebad = min(len(next_value) - staticlen, wherebad) - checksum_size  # change the seed, not the checksum character itself
+                c = next_value[wherebad]  # find the digit for last changeable letter of the bad word
+                next_index = self.alphabet.find(c) + 1       # and increment it
+                if next_index < len(self.alphabet):  # if the bad word does not end in 'Y'
+                    next_root = next_value[:wherebad] + self.alphabet[next_index] + next_value[wherebad+1:-1]
+                    next_value = _checksum(next_root, self.hash, self.alphabet)
+                else:
+                    next_value = self._run_factory()  # will this ever happen?
         del self.seed  # invalidate cached seed
         return next_value
 

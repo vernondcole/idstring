@@ -15,8 +15,8 @@ class IDstring generates (and checks) alphanumeric serial number strings with a 
 * Added ability to pass hash=None to turn off checksums.
 * Support for lower-case letters in alphabets.
 * Assigning alternate alphabets (etc.) during instance creation.
+* Choice of automatic case shift upper, lower, or None. 
 * Some small breaking changes. Especially . . .
-* No more built-in upcase() for incoming strings.
 * The use of IdString(seed='sss') syntax is required in usual cases when manually creating a new instance.
 * The wonky 5-bit binary conversion functions, which only worked with the default alphabet, have been removed.
 
