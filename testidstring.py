@@ -6,13 +6,14 @@ from __future__ import unicode_literals
 
 __author__ = 'vernon'
 
-from  idstring import *
+import idstring
+from idstring import IDstring, InvalidIdError
 import unittest
 import random
 from contextlib import contextmanager
 
 def assertion(seen, expected, seed=None):
-    assert seen == expected, 'Value is "%s". expected "%s"' % (seen, expected)
+    assert str(seen) == expected, 'Value is "%s". expected "%s"' % (seen, expected)
     if seed:
         testseed(seed)
 
@@ -21,7 +22,8 @@ dummyseed = None
 # the seedstore function will be called back with an IDstring object as its only argument
 def dummy(idstr):  # nonfunctional seedstore function
     global dummyseed
-    dummyseed = idstr.get_seed()      # the seed we need to preserve
+    d = idstr.get_seed()      # the seed we need to preserve
+    dummyseed = d      # the seed we need to preserve
 
 def testseed(s):
     assert dummyseed == s, 'seed returned was "%s" expected "%s"' % (dummyseed, s)
@@ -30,7 +32,7 @@ def testseed(s):
 class Test1(unittest.TestCase):
     def test1(self):
     #test building a factory
-        fact = IDstring(None, '90a', '1234', dummy)
+        fact = IDstring(seed='90a', host='1234', seedstore=dummy)
     #value comes back unchanged
         assertion(fact, '90A1234A', None)
     #try the next value
@@ -41,7 +43,7 @@ class Test1(unittest.TestCase):
 class Test2(unittest.TestCase):
     def test2(self):
     #test the carry
-        fact = IDstring(None, '000Y', 'ppp', dummy)
+        fact = IDstring(seed='000Y', host='ppp', seedstore=dummy)
         x = fact + 1
         assertion(x, '0010PPP9', '0010')
     def test2a(self):
@@ -60,7 +62,7 @@ class Test3(unittest.TestCase):
         except InvalidIdError:
             pass
         else:
-            self.Fail('Did not see OutOfRangeError')
+            self.fail('Did not see OutOfRangeError')
 
     def test3b(self):
         assert not IDstring.sumcheck('TSETME2K'), 'invalid checksum should not pass'
@@ -82,12 +84,12 @@ class Test4(unittest.TestCase):
         assertion(x, 'FUCL000U', 'FUCL000')
 
     def test4c(self):   # test the case where a checksum causes a bad word
-        f = IDstring(None, '000vfub', seedstore=dummy)
+        f = IDstring(seed='000vfub', seedstore=dummy)
         x = f + 1             # '000VFUC' has a checksum of 'K'
         assertion(x, '000VFUDH', '000VFUD')
 
     def test4d(self):   # test the case where a host field causes a bad word
-        f = IDstring(None, '0ct', 'nt', dummy)
+        f = IDstring(seed='0ct', host='nt', seedstore=dummy)
         x = f + 1             #
         assertion(x,'0CVNTG', '0CV')
 
@@ -102,7 +104,7 @@ class Test5(unittest.TestCase):
 
         # run the test using many different random strings
         for N in range(1000):
-            jumble = IDstring(seed=ranlets(random.randint(2,20))) # make a random length random string
+            jumble = IDstring(seed=ranlets(random.randint(2, 20)))  # make a random length random string
             for i,should_be in enumerate(jumble):                   # for each character in that string
                 others = list(alphabet)                             # replace it with every other possible character
                 others.remove(should_be)
@@ -126,23 +128,21 @@ class Test5(unittest.TestCase):
 
 class Test6(unittest.TestCase):
 # test weird extra functions
+    def test6(self):
+        # seed in binary is deprecated
+        self.assertRaises(idstring.InvalidIdError, IDstring, [], **{'seed': 0})
 
-    def test6(self):    # feed it in binary
-        f = IDstring(seed=0)
+        f = IDstring(seed='0')
         assertion(f, '00')
         x = f + 1
         assertion(x, u'1X')
         x = f + 1   # !! do not use this terrible side effect !!!
-        assertion(x, u'2V')
-        f = IDstring(None, 17, "2")
-        assertion(f, u'H2B')
-        x = f + 1
-        assertion(int(x), 18*32+2)  # int() should return the value of the whole non-checksumed thing, not just the seed
+        self.assertNotEqual(x, '2V')
 
-    def test6a(self):
-        # put a checksum on a 32bit number
-        f = IDstring(seed=32767)
-        assertion(f, 'YYY3')
+        x += 1
+        assertion(x, '2V')
+        self.assertRaises(ValueError, int, *[x], **{})  # deprecated function int(IDstring)
+
 
     @contextmanager
     def weird_alphabet(self, weird):
@@ -157,27 +157,15 @@ class Test6(unittest.TestCase):
         # change the class alphabet to hexadecimal
         with self.weird_alphabet('0123456789ABCDEF'):
             # put a checksum on a hexadecimal number
-            f = IDstring(seed=32767)
+            f = IDstring(seed='7FFF')
             assertion(f, '7FFFC')
-
-            for i in range(79):
-                j = random.randint(0,i)
-
-                # test binary to string
-                js = IDstring.thirty2(j)
-                assertion('0x'+js.lower(), hex(j))
-
-                # test string to binary
-                ks = hex(j)[2:].upper()   # strip off the '0x'
-                k = IDstring.thirty2int(ks)
-                assertion(k,j)
 
 
 class Test7(unittest.TestCase):
     #  Testing hash
     def test7a(self):
     #test building a factory with a variant hash
-        fact = IDstring(None, '90a', '1234', dummy, '0')
+        fact = IDstring(None, '90a', '1234', dummy, hash='0')
     #value comes back unchanged
         assertion(fact, '90A1234Y', None)
         IDstring.sumcheck(fact, hash='0')
@@ -199,13 +187,72 @@ class Test7(unittest.TestCase):
         except InvalidIdError:
             pass
         else:
-            self.Fail('Did not see OutOfRangeError')
+            self.fail('Did not see OutOfRangeError')
 
     def test7d(self):
         assert not IDstring.sumcheck('TESTME29'), 'invalid checksum should not pass (default hash)'
 
     def test7e(self):
         assert not IDstring.sumcheck('TESTME29', hash='XX'), 'invalid checksum should not pass (different hash)'
+
+
+class Test8(unittest.TestCase):
+    #  Testing with no checksum (hash=None)
+    def test8a(self):
+    #test building a factory with a null hash
+        fact = IDstring(None, '5GA', '1234', dummy, None)
+    #value comes back unchanged
+        assertion(fact, '5GA1234', None)
+        IDstring.sumcheck(fact, hash=None)
+    #try the next value
+        x = fact + 1
+        assertion(x, '5GB1234', '5GB')
+
+    def test8b(self):
+        x = IDstring('ADD', seedstore=dummy, hash=None, alphabet='abcd', case_shift=str.lower)
+        x += 1
+        assertion(x, 'baa', 'baa')
+
+        x = IDstring(seed='DDDD', seedstore=dummy, hash=None, alphabet='ABCD')
+        x += 1
+        assertion(x, 'AAAAA')
+
+        self.assertFalse(IDstring.sumcheck('ABAD1', hash=None, alphabet='ABCD'))
+
+class Test9(unittest.TestCase):
+    # testing that case_shift=None will not shift case
+    def test9(self):
+        x = IDstring(seed='AbC', seedstore=dummy, hash=None, alphabet='ABCabc', case_shift=None)
+        assertion(x, 'AbC')
+        x += 1
+        assertion(x, 'Aba')
+
+
+class Test10(unittest.TestCase):
+    # Test the dirty word filter in more depth
+    @contextmanager
+    def weird_words(self, weird):
+        keep = IDstring.DIRTY_WORDS
+        IDstring.DIRTY_WORDS = weird
+        try:
+            yield None
+        finally:
+            IDstring.DIRTY_WORDS = keep
+
+    def test10(self):
+        # try changing the dirty word list
+        more_words = idstring.DEFAULT_DIRTY_WORDS + idstring.DIRTY_I_WORDS
+        with self.weird_words(more_words):
+            f = IDstring(seed='tBtist', alphabet='aBcit', case_shift=None, hash=None)  # a short mixed case alphabet
+            f += 1  # carry should spell a three letter objectionabe word
+            assertion(f, 'tBtiaa')  # The second "t" should be incremented to "a"
+
+
+    def test11(self):
+        # test carry out of range with alternate alphabet
+        f = IDstring(seed='zzz', alphabet='abcz', case_shift=None)
+        f += 1
+        assertion(f, 'aaaaa')
 
 
 if __name__ == "__main__":

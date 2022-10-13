@@ -1,1 +1,2 @@
 include *.py
+exclude testidstring.py
