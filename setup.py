@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ld = """an IDstring is a string-like object which can be incremented, to produce
 a series of serial-number-like strings, consisting of Arabic digits and upper case letters,
