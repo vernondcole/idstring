@@ -189,7 +189,7 @@ class IDstring(str):
 
     @property
     def seed(self):
-        return self.get_seed(self)
+        return self.get_seed()
 
 
     def get_seed(self):
