@@ -3,3 +3,7 @@ MANIFEST
 .idea
 dist
 *~
+build
+idstring.egg-info
+/venv/
+/test_idstring_sqlite.db
