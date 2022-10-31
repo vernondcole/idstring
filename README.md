@@ -19,8 +19,10 @@ class IDstring generates (and checks) alphanumeric serial number strings with a 
 * Some small breaking changes. Especially . . .
 * The use of IdString(seed='sss') syntax is required in usual cases when manually creating a new instance.
 * The wonky 5-bit binary conversion functions, which only worked with the default alphabet, have been removed.
+* Version 2.1:
+* adds a .context dictionary to the IDstring object which a seedstore method can use to store its operating context.
 
-It extends the built-in str class, using an __ADD__ method which accepts the integer ONE.
+IDstring extends the built-in str class, using an __ADD__ method which accepts the integer ONE.
 Adding 1 to an instance of the class will generate a new instance with an incremented value (and a new checksum).
 
 So, in short, you can generate serial numbers like this:
