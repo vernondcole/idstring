@@ -2,8 +2,6 @@
 """
 Test code for the IDstring package
 """
-from __future__ import unicode_literals
-
 __author__ = 'vernon'
 
 import idstring

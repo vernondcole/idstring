@@ -28,7 +28,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
 from collections.abc import Callable
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "2.0.3"
+__version__ = "2.1.0"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -60,10 +60,6 @@ __version__ = "2.0.3"
 #-    store_info(str(present_id), some_patient_data)
 #-
 #-----------------------------------------------------------------------
-
-#Define exceptions
-import idstring
-
 
 class IdStringError(ValueError):
     """Base class for all errors in the IdString package"""
@@ -128,12 +124,13 @@ class IDstring(str):
 
     @staticmethod
     def __new__(cls, idstr=None, seed=None, host='', seedstore=None, hash='', alphabet=None,
-                case_shift=DEFAULT_CASE_SHIFT, no_check=False):
+                case_shift=DEFAULT_CASE_SHIFT, no_check=False, context={}):
         """
         :S - an existing legal idString, or None
         :seed - the seed string for a new factory [ignored unless S is None]
         :host - the host portion for a new idString factory, len(host) will set host length for factory
         :seedstore - a seed preservation function for the new factory
+        :context - a dictionary of things reserved for seedstore to use, internal to seedstore
         :hash - an additional string to alter the calculation of the check digit for diverse projects
                 pass hash=None to turn off checksum testing and creation. Makes this module dumb.
         :case_shift - function to apply to input strings. one of str.upper str.lower or None
@@ -150,14 +147,16 @@ class IDstring(str):
         alphabet = alphabet or IDstring.ALPHABET
         value = None
         if isinstance(idstr, cls):
-            value = str(idstr)
             if host != idstr.host:
                 raise InvalidIdError(f'Cannot use host "{host}" with id "{value}"')
-            seed = idstr.get_seed()  # we cannot change any of these things
+            if seed is None:  # making a clone
+                value = str(idstr)
+                seed = idstr._seed
             hash = idstr.hash
             alphabet = idstr.alphabet
             seedstore = idstr.seedstore
             case_shift = idstr.case_shift
+            context = idstr.context
         elif isinstance(idstr, str):
             us = case_shift(idstr)  # if passing a string as on IDstring, it must already have a checksum
             if no_check:
@@ -175,7 +174,7 @@ class IDstring(str):
                 raise InvalidIdError(f'No valid ID in id="{idstr}" or seed="{seed}"')
         value = case_shift(value)
         new = super().__new__(cls, value) #create the new instance
-        new.seed = seed  # fill in the new instances attributes (as if we were __init__)
+        new._seed = seed  # fill in the new instances attributes (as if we were __init__)
         new.host = host
         new.hash = hash
         new.alphabet = alphabet
@@ -183,24 +182,32 @@ class IDstring(str):
             if not isinstance(seedstore, Callable):
                 raise IdStringError ('seedstore "%s" is not Callable' % repr(seedstore))
         new.seedstore = seedstore
+        new.context = context
         new.case_shift = case_shift
         return new
+
+
+    @property
+    def seed(self):
+        return self.get_seed()
 
 
     def get_seed(self):
         """extracts the incrementable part (without the host and checksum digits) of the IDstring"""
         try:
-            ret = self.seed
+            stored_seed = self._seed
         except AttributeError:
-            ret = None
-        if ret is None:
+            stored_seed = None
+        if stored_seed is None:
             inc = 0 if self.hash is None else 1
             try:
                 n = len(self.host) + inc
             except TypeError:
                 n = inc
             ret = str(self)[:-n] if n > 0 else str(self)
-        return ret
+            self._seed = ret  # cache for next time
+            return ret
+        return stored_seed
 
 
     def _next_value(self):
@@ -223,7 +230,7 @@ class IDstring(str):
                     cat = carry_digit + cat # add a new place
                     keep_looping = False
         seed = seed[:n] + cat
-        self.seed = seed
+        self._seed = seed
         return _checksum(seed + self.host, self.hash, self.alphabet)
 
 
@@ -247,7 +254,7 @@ class IDstring(str):
                     next_value = _checksum(next_root, self.hash, self.alphabet)
                 else:
                     next_value = self._run_factory()  # will this ever happen?
-        del self.seed  # invalidate cached seed
+        del self._seed  # invalidate cached seed
         return next_value
 
 
@@ -255,14 +262,17 @@ class IDstring(str):
         """supports 'IDstring + 1' to generate the next serial number. (all other addends just do str concat)
 
         if idstring.host was defined, skip that many characters before incrementing
-        !!weird side effect!! doing (i + 1) "N" times WILL produce N sequential values. This is intentional but -- ICK!
+        if seedstore() returns a value (other than None) that will become the new incremented value
         """
         if other == 1:
             next_thing = self._run_factory()
+            # Python strings are immutable, so we must create a new instance
             ret = IDstring(next_thing, host=self.host, seedstore=self.seedstore, hash=self.hash,
-                           case_shift=self.case_shift, alphabet=self.alphabet, no_check=True)
+                           case_shift=self.case_shift, alphabet=self.alphabet, no_check=True, context=self.context)
             if ret.seedstore:    # call the seedstore function supplied by the program, with "self" as an argument
-                ret.seedstore(ret)
+                correction = ret.seedstore(ret)
+                if correction:  # user can return a new, improved ID value
+                    return correction
             return ret
         else:
             return str(self) + other
