@@ -28,7 +28,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
 from collections.abc import Callable
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "2.1.0"
+
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -80,7 +80,7 @@ DEFAULT_ALPHABET = "0123456789ABCDEFGHJKLMNPRSTUVWXY"
 
 # create a list of George Carlan's "the seven words you can't say on T.V."
 # plus a few extras, but ignoring those with an "I" in them, since the default ALPHABET has no "I"
-DEFAULT_DIRTY_WORDS = [c[::-1] for c in ['KCUF', 'TNUC', 'TRAF', 'DRUT', 'TAWT', 'SLLAB']]
+DEFAULT_DIRTY_WORDS = [c[::-1] for c in ['KCUF', 'TNUC', 'TRAF', 'DRUT', 'TAWT', 'SLLAB', 'SSA']]
 DIRTY_I_WORDS = [c[::-1] for c in ['TIHS', 'TIT', 'SSIP']]  # if your alternate alphabet contains an "I"
 # alter your list like--> IDstring.DIRTY_WORDS = idstring.DEFAULT_DIRTY_WORDS + idstring.DIRTY_I_WORDS
 # the words are stored backwards in the source, because 'kcuf' is not objectionable.
@@ -189,7 +189,7 @@ class IDstring(str):
 
     @property
     def seed(self):
-        return self.get_seed(self)
+        return self.get_seed()
 
 
     def get_seed(self):

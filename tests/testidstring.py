@@ -4,8 +4,8 @@ Test code for the IDstring package
 """
 __author__ = 'vernon'
 
-import idstring
-from idstring import IDstring, InvalidIdError
+from idstring import idstring
+from idstring.idstring import IDstring, InvalidIdError
 import unittest
 import random
 from contextlib import contextmanager
@@ -70,10 +70,10 @@ class Test4(unittest.TestCase):
         # test the dirty word eliminator
 
     def test4(self):    #test that we skip bad words on the right
-        f = IDstring(seed='dcballr')
-        assertion(f, 'DCBALLRC')
+        f = IDstring(seed='dcasr')
+        assertion(f, 'DCASRV')
         x = f + 1
-        assertion(x, 'DCBALLT8')  #skips the bad word 'balls'
+        assertion(x, 'DCASTR')  #skips the bad word 'ass'
 
     def test4b(self):
         #test that we skip bad words on the left
