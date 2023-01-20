@@ -28,7 +28,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
 from collections.abc import Callable
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-
+__version__ = "2.1.1"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
