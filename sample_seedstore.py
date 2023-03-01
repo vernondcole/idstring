@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Test code for the IDstring package
 """
@@ -6,13 +6,14 @@ __author__ = 'vernon'
 
 import sqlite3
 from typing import Union
-from idstring import IDstring
+from idstring.idstring import IDstring
 
 
 DB_FILE_NAME = 'test_idstring_sqlite.db'
 DB_TABLE_NAME = 'the_list'
 DB_NEXT_ID_TABLE = 'next_id'
 ID_FIELD_NAME = 'his_id'
+FIRST_SEED_VALUE = '0'
 
 # *** GENERAL NOTE -- I am using Python string functions to build SQL statements in places where
 # *** SQL injection attacks are unlikely, since the values used come only from within this program.
@@ -71,7 +72,7 @@ def init_db(conn):
     if count == 0:  # the table does not yet exist
         c = conn.cursor()
         cur.execute(f"CREATE TABLE {DB_NEXT_ID_TABLE} (only_id int, saved_id TEXT UNIQUE NOT NULL)")
-        first_value = IDstring(seed='0')
+        first_value = IDstring(seed=FIRST_SEED_VALUE)
         cur.execute(f"INSERT INTO {DB_NEXT_ID_TABLE} VALUES (1, '{first_value}')")
         c.close()
         conn.commit()

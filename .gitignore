@@ -7,3 +7,4 @@ build
 idstring.egg-info
 /venv/
 /test_idstring_sqlite.db
+/identifier.sqlite
