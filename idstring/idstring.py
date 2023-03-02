@@ -126,14 +126,16 @@ class IDstring(str):
     def __new__(cls, idstr=None, seed=None, host='', seedstore=None, hash='', alphabet=None,
                 case_shift=DEFAULT_CASE_SHIFT, no_check=False, context={}):
         """
-        :S - an existing legal idString, or None
+        :idstr - an existing legal idString, or None
         :seed - the seed string for a new factory [ignored unless S is None]
         :host - the host portion for a new idString factory, len(host) will set host length for factory
-        :seedstore - a seed preservation function for the new factory
-        :context - a dictionary of things reserved for seedstore to use, internal to seedstore
+        :alphabet - an alternate alphabet.
+        :seedstore - a seed preservation function (callable) for the new factory
         :hash - an additional string to alter the calculation of the check digit for diverse projects
                 pass hash=None to turn off checksum testing and creation. Makes this module dumb.
         :case_shift - function to apply to input strings. one of str.upper str.lower or None
+        :no_check - inhibit usual checksum test on idstr when passed in (not None)
+        :context - a dictionary of things reserved for the seedstore function to use, internal to seedstore
         """
         if case_shift is None:
             case_shift = noshift

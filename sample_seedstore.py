@@ -17,7 +17,7 @@ FIRST_SEED_VALUE = '0'
 
 # *** GENERAL NOTE -- I am using Python string functions to build SQL statements in places where
 # *** SQL injection attacks are unlikely, since the values used come only from within this program.
-# *** Paramaterized queries are used for other data values which may not be wholly reliable.
+# *** Paramaterized queries are used for those other data values which may not be wholly reliable.
 
 def next_id(conn):
     """ return the next available id value """
@@ -63,7 +63,7 @@ def save_id(id: IDstring) -> Union[None, IDstring]:
 
 
 def init_db(conn):
-    # ## create samplet tables if they do not already exist
+    # ## create sample tables if they do not already exist
     sql_create_main_table = f"CREATE TABLE IF NOT EXISTS {DB_TABLE_NAME} (entity_name TEXT, {ID_FIELD_NAME} TEXT);"
     cur = conn.cursor()
     cur.execute(sql_create_main_table)
