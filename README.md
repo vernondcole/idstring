@@ -3,9 +3,20 @@ idstring
 
 Python module to create alpha-numeric serial number strings with a check digit, with smart incrementing.
 
-[ for more information, please refer to the wiki at https://github.com/vernondcole/idstring/wiki ]
+an IDstring is a string-like object which can be incremented, to produce
+a series of serial-number-like strings, consisting of Arabic digits and upper case letters,
+skipping those which can be easily misinterpreted ("oh", "I", "Q", and Zed) and which has
+(by defaut) an optional Luhn-N check digit, capable of detecting any single-letter error and most other errors.
+
+Programmers may define alternate alphabets, alternate lists of "dirty" words (which are skipped),
+a fixed subfield for generating serial number from multiple sources, and a hash code to create unique check
+digits algorithms for multiple projects. Passing a hash code of None will surpress check digit operation.
+
+For more explanation, please refer to [the wiki on github](https://github.com/vernondcole/idstring/wiki)
 
 class IDstring generates (and checks) alphanumeric serial number strings with a checksum
+
+### changes:
 
 * 2018 Update: Still works fine in Python 3.6. No issues have been filed, no bugs reported.
  
@@ -22,6 +33,7 @@ class IDstring generates (and checks) alphanumeric serial number strings with a 
 * Version 2.1:
 * adds a .context dictionary to the IDstring object which a seedstore method can use to store its operating context.
 
+### operation:
 IDstring extends the built-in str class, using an __ADD__ method which accepts the integer ONE.
 Adding 1 to an instance of the class will generate a new instance with an incremented value (and a new checksum).
 
@@ -64,11 +76,16 @@ Provision is made for a fixed subfield (of user defined length) between the chec
 field, so that multiple sites can produce non-overlapping series of numbers.  This subfield and the check digit
 are included in the "dirty word" checking.
 
+### still don't understand?
+Read the source, Luke. 
+https://pypi.org/project/idstring/#files
+
+Read (and then test run) the program sample_seedstore.py to see how it works.
+
+Run "python sample_seedstore.py" from multiple terminals to observe how it uses
+a one-row SQL database to maintain the seed value and gives unique values.
+
+### installation:
 Installation uses the usual Python methods:
 
-    cd your-unzipped-directory
-    python setup.py install
-    
-    or
-    
     pip install idstring

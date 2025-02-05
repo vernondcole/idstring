@@ -28,7 +28,7 @@ The string is initialized using a five-argument call like; idstring.IDstring(IDs
 from collections.abc import Callable
 
 __author__ = "Vernon Cole <vernondcole@gmail.com>"
-__version__ = "2.1.1"
+__version__ = "2.1.4"
 
 # -- a short calling sample -- real code would use a better storage method ---------
 #- import pickle, idstring
@@ -356,8 +356,8 @@ def _sumcheck(s, hash='', alphabet=None, case_shift=None):
             alphabet = IDstring.ALPHABET
         if case_shift is None:
             case_shift = DEFAULT_CASE_SHIFT
-        if hash is None:  # checksums are not in use.
-            for c in case_shift(s):
+        if hash is None:  # if checksums are not in use. . .
+            for c in case_shift(s):  # just check for valid characters
                 if c not in alphabet:
                     return False
             return True

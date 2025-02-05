@@ -25,19 +25,24 @@ def next_id(conn):
     cur = conn.cursor()
     cur.execute(f"SELECT saved_id FROM {DB_NEXT_ID_TABLE} WHERE only_id = 1")
     present_value = cur.fetchone()[0]
+
+    # notice: we pass the save_id function to IDstring instance.
+    # it will recurse, if needed, in case of a collision
     id = IDstring(present_value, seedstore=save_id, context={'conn': conn})
+
     # retain that value in the object, for concurrency checking later
     id.context['memory'] = str(id)
+
     cur.close()
     # 2) create a new ID each time called
     while ...:
-        id += 1  # NOTE: the + operation calls seedstore(). It may recurse.
+        id += 1  # NOTE: the + operation calls seedstore(). It may recurse the +1 operation.
         yield id
 
 
 def save_id(id: IDstring) -> Union[None, IDstring]:
     """ store the current seed value in the one-row database table
-    if the input IDstring is invalid (already used) then return a good one.
+    if the input IDstring is invalid (already used) then generate a good one.
     """
     ret = None  # default value, used when the input id was valid
     cur = id.context['conn'].cursor()
@@ -59,7 +64,7 @@ def save_id(id: IDstring) -> Union[None, IDstring]:
     else:
         conn.commit()  # save the good change
     cur.close()
-    return ret  # will be used in __add__() if not None
+    return ret  # will be used by IDsring.__add__() if not None
 
 
 def init_db(conn):
@@ -78,6 +83,7 @@ def init_db(conn):
         conn.commit()
 
 
+# try running this from multiple terminals to watch it bumping the serial number for each one.
 if __name__ == '__main__':
     conn = sqlite3.connect(DB_FILE_NAME)
 

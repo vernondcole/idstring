@@ -4,27 +4,29 @@ Test code for the IDstring package
 """
 __author__ = 'vernon'
 
-from idstring import idstring
+import sys, os
+mommy = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(1, mommy)  # use the local copy, not some system version
+
+import idstring
 from idstring.idstring import IDstring, InvalidIdError
 import unittest
 import random
 from contextlib import contextmanager
 
+dummy_seed = None  # Glabal variable used for ephemeral seed storage
+
 def assertion(seen, expected, seed=None):
     assert str(seen) == expected, 'Value is "%s". expected "%s"' % (seen, expected)
     if seed:
-        testseed(seed)
+        assert dummy_seed == seed, 'seed returned was "%s" expected "%s"' % (seen, dummy_seed)
 
-dummyseed = None
 
 # the seedstore function will be called back with an IDstring object as its only argument
 def dummy(idstr):  # nonfunctional seedstore function
-    global dummyseed
+    global dummy_seed
     d = idstr.get_seed()      # the seed we need to preserve
-    dummyseed = d      # the seed we need to preserve
-
-def testseed(s):
-    assert dummyseed == s, 'seed returned was "%s" expected "%s"' % (dummyseed, s)
+    dummy_seed = d      # just store it in a global variable for test purposes
 
 
 class Test1(unittest.TestCase):

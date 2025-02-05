@@ -1,9 +1,9 @@
 [project]
 name = 'idstring'
-description = 'A Python package to produce network_dasigner_view spreadsheets.'
+description = 'A Python package to create unique, checksummed serial-number strings.'
 authors = [{name = 'Vernon Cole'},{email = "vernondcole@gmail.com"}]
 dependencies = []
-dynamic = ['version']
+dynamic = ['version']  # set from __version__ in idstring.py
 keywords = ["serial number", "string", "checksum", "Luhn", "increment"]
 classifiers = [
             'Development Status :: 5 - Production/Stable',
@@ -15,26 +15,14 @@ classifiers = [
             'Topic :: Software Development',
             'Topic :: Software Development :: Libraries :: Python Modules'
             ]
+readme = "README.md"
 
 [project.urls]
 repository = "https://github.com/vernondcole/idstring"
 documentation = "https://github.com/vernondcole/idstring/wiki"
 
-[project.readme]
-content-type = "text/x-rst"
-text = """\
-    an IDstring is a string-like object which can be incremented, to produce \
-    a series of serial-number-like strings, consisting of Arabic digits and upper case letters, \
-    skipping those which can be easily misinterpreted ("oh", "I", "Q", and Zed) and which has \
-    (by defaut) an optional Luhn-N check digit, capable of detecting any single-letter error and most other errors. \
-    \
-    Programmers may define alternate alphabets, alternate lists of "dirty" words (which are skipped), \
-    a fixed subfield for generating serial number from multiple sources, and a hash code to create unique check \
-    digits algorithms for multiple projects. Passing a hash code of None will surpress check digit operation. \
-    """
-
 [build-system]
-requires = ["setuptools>65.0.0", "wheel", "build"]
+requires = ["setuptools", "wheel", "build"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
